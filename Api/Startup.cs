@@ -2,6 +2,7 @@ using Api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +39,7 @@ namespace Api
 
             services.AddControllers();
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Latest);
+            services.AddMvc(option => option.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Latest);
 
             services.AddTransient<AuthenticationContext>();
 
@@ -47,6 +48,9 @@ namespace Api
 
             services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AuthenticationContext>();
 
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddHttpContextAccessor();
+            services.AddSession();
             services.Configure<IdentityOptions>(options =>
             {
                 options.Password.RequireDigit = false;
@@ -99,7 +103,8 @@ namespace Api
             app.UseRouting();
 
             app.UseAuthorization();
-
+            app.UseSession();
+            app.UseMvc();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
