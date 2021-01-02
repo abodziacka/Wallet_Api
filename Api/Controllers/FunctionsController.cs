@@ -118,6 +118,22 @@ namespace Api.Controllers
             _context.SaveChanges();
         }
 
+        [HttpPost]
+        [Route("add-category")]
+        //POST: /functions/add-category
+        public void AddCategory(Category category)
+        {
+            String userId = GetUserId();
+            _context.Categories.Add(new Category()
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Description = category.Description
+
+            });
+            //_context.Bills.Add(bill);
+            _context.SaveChanges();
+        }
 
         [HttpGet]
         [Route("get-category")]

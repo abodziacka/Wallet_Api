@@ -25,6 +25,9 @@ namespace Api.Models
         public DbSet<Bill> Bills { get; set; }
         public DbSet<Category> Categories { get; set; }
 
+        public DbSet<Budget> Budgets { get; set; }
+
+
 
 
 

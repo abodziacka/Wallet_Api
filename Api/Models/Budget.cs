@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 
 namespace Api.Models
 {
-    public class Category
+    public class Budget
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-
+        public DateTime FromDate { get; set; }
+        public DateTime ToDate { get; set; }
+        public float Quantity { get; set; }
 
     }
 }
