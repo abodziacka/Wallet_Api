@@ -128,7 +128,9 @@ namespace Api.Controllers
             {
                 Id = category.Id,
                 Name = category.Name,
-                Description = category.Description
+                Description = category.Description,
+                UserId = userId
+
 
             });
             //_context.Bills.Add(bill);
@@ -138,12 +140,56 @@ namespace Api.Controllers
         [HttpGet]
         [Route("get-category")]
         //GET: /functions/get-category
-        public IEnumerable<Category> GetCategoryl()
+        public IEnumerable<Category> GetCategory()
         {
-            //var query = from billQ in _context.Bills join productQ in _context.Products on billQ.Id equals productQ.BillId where billQ.Id == id select billQ;
-            IEnumerable<Category> categories = _context.Categories;
-            //List<Product> products = (List<Product>)_context.Products.ToList();
+            String userId = GetUserId();
+
+            IEnumerable<Category> categories = _context.Categories.Where(p => p.UserId == userId).Select(p => p).ToList();
             return categories;
+        }
+
+        [HttpPost]
+        [Route("add-budget")]
+        //POST: /functions/add-budget
+        public void AddBudget(Budget budget)
+        {
+            String userId = GetUserId();
+            _context.Budgets.Add(new Budget()
+            {
+                Id = budget.Id,
+                Quantity = budget.Quantity,
+                FromDate = budget.FromDate,
+                ToDate = budget.ToDate,
+                UserId = userId
+
+
+            }); ;
+            //_context.Bills.Add(bill);
+            _context.SaveChanges();
+        }
+
+        [HttpGet]
+        [Route("get-budgets")]
+        //GET: /functions/get-category
+        public IEnumerable<Budget> GetBudgets()
+        {
+            String userId = GetUserId();
+
+            IEnumerable<Budget> budgets = _context.Budgets.Where(p => p.UserId == userId).Select(p => p).ToList();
+            return budgets;
+        }
+        [HttpDelete]
+        [Route("delete-budget-by-id")]
+        public void DeleteBudgetById(int budgetId)
+        {
+            Budget budget = (Budget)_context.Budgets.Find(budgetId);
+            String userId = GetUserId();
+
+            if (budget.UserId == userId)
+            {
+                _context.Budgets.Remove(budget);
+                _context.SaveChanges();
+            }
         }
 
         [HttpPut]
@@ -217,5 +263,123 @@ namespace Api.Controllers
                 _context.SaveChanges();
             }
         }
+
+        [HttpGet]
+        [Route("get-budgetStatistics")]
+        //GET: /functions/get-bill
+        public Object GetBudgetStatistics()
+        {
+            String userId = GetUserId();
+
+            var query2 = from bu in _context.Budgets
+                         where bu.UserId == userId
+                         select new
+                         {
+                             bu.Id,
+                             bu.FromDate,
+                             bu.ToDate,
+                             bu.Quantity,
+                             Price = (double?)
+                             (from p in _context.Products
+                              join b in _context.Bills on p.BillId equals b.Id
+                              where
+       b.Date >= bu.FromDate && b.Date <= bu.ToDate && b.UserId == userId
+                              select new
+                              {
+                                  TotalPrice = p.Price * p.Amount
+                              }).Sum(p => p.TotalPrice),
+                             SaveMoney = (double?)(bu.Quantity -
+                             (from p in _context.Products
+                              join b in _context.Bills on p.BillId equals b.Id
+                              where
+      b.Date >= bu.FromDate && b.Date <= bu.ToDate && b.UserId == userId
+                              select new
+                              {
+                                  TotalPrice = p.Price * p.Amount
+                              }).Sum(p => p.TotalPrice))
+                         };
+            return query2;
+                
+        }
+
+        [HttpGet]
+        [Route("get-diagramDetails")]
+        //GET: /functions/get-bill
+        public Object GetDiagramDetails(int budgetId)
+        {
+            String userId = GetUserId();
+            Budget budget = (Budget)_context.Budgets.Find(budgetId);
+            if (budget != null && budget.UserId == userId)
+            {
+                var query2 = from p in _context.Products
+                             join c in _context.Categories on new { Id = p.CategoryId } equals new { Id = c.Id } into c_join
+                             from c in c_join.DefaultIfEmpty()
+                             join b in _context.Bills on p.BillId equals b.Id
+                             where
+                               b.Date >= budget.FromDate && b.Date <= budget.ToDate && b.UserId == userId
+                             group new { c, p } by new
+                             {
+                                 c.Id,
+                                 c.Name
+                             } into g
+                             select new
+                             {
+                                 Id = g.Key.Id,
+                                 Name = g.Key.Name,
+                                 TotalPrice = (double?)g.Sum(p => p.p.Amount * p.p.Price)
+                             };
+                return query2;
+            } else
+            {
+                return null;
+            }
+
+        }
+
+        [HttpGet]
+        [Route("get-diagramDetails-categorydetails")]
+        //GET: /functions/get-diagramDetails-categorydetails
+        public Object GetDiagramCategory(int budgetId, int categoryId)
+        {
+            String userId = GetUserId();
+            Budget budget = (Budget)_context.Budgets.Find(budgetId);
+            if (budget != null && budget.UserId == userId)
+            {
+                var query2 = from p in _context.Products
+                             join b in _context.Bills on p.BillId equals b.Id
+                             where
+                               p.CategoryId == categoryId &&
+                               b.Date >= budget.FromDate && b.Date <= budget.ToDate && 
+                               b.UserId == userId
+                             group p by new
+                             {
+                                 p.Name
+                             } into g
+                             select new
+                             {
+                                 g.Key.Name,
+                                 Amount = (double?)g.Sum(p => p.Amount),
+                                 TotalPrice = (double?)g.Sum(p => p.Amount * p.Price)
+                             };
+                return query2;
+            }
+            else
+            {
+                return null;
+            }
+
+        }
+
+        [HttpGet]
+        [Route("get-count-budget-in-period")]
+        //GET: /functions/get-bill
+        public int GetCountBudgetInPeriod(DateTime dateFrom, DateTime dateTo)
+        {
+            String userId = GetUserId();
+            List<Budget> budgets = (List<Budget>)_context.Budgets.Where(p => (p.FromDate <= dateFrom && p.ToDate >= dateFrom && p.UserId == userId) || (p.FromDate <= dateTo && p.ToDate >= dateTo && p.UserId == userId)).Select(p => p).ToList();
+            return budgets.Count();
+        }
+
+
     }
 }

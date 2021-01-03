@@ -11,9 +11,9 @@ namespace Api.Models
 
         public string Name { get; set; }
 
-        public int Amount { get; set; }
+        public double Amount { get; set; }
 
-        public int Price { get; set; }
+        public double Price { get; set; }
 
         public int CategoryId { get; set; }
         public int BillId { get; set; }
