@@ -22,13 +22,15 @@ namespace Api.Controllers
         private UserManager<User> _userManager;
         private SignInManager<User> _signInManager;
         private readonly ApplicationSettings _appSettings;
+        private readonly AuthenticationContext _context;
 
 
-        public UserController(UserManager<User> userManager, SignInManager<User> signInManager, IOptions<ApplicationSettings> appSettings)
+        public UserController(AuthenticationContext context, UserManager<User> userManager, SignInManager<User> signInManager, IOptions<ApplicationSettings> appSettings)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _appSettings = appSettings.Value;
+            _context = context;
         }
 
         [HttpPost]
@@ -46,6 +48,28 @@ namespace Api.Controllers
             try
             {
                 var result = await _userManager.CreateAsync(user, model.Password);
+                var createUser = await _userManager.FindByEmailAsync(model.Email);
+                Category categoryFood = new Category();
+
+                categoryFood.Name = "Żywność";
+                categoryFood.Description = "Produkty spożywcze";
+                categoryFood.UserId = createUser.Id;
+                _context.Categories.Add(categoryFood);
+                //_context.SaveChanges();
+
+                Category categoryClothes = new Category();
+                categoryClothes.Name = "Odzież";
+                categoryClothes.Description = "Ubrania";
+                categoryClothes.UserId = createUser.Id;
+                _context.Categories.Add(categoryClothes);
+                //_context.SaveChanges();
+
+                Category categoryExpenses = new Category();
+                categoryExpenses.Name = "Wydatki";
+                categoryExpenses.Description = "Rachunki bieżące";
+                categoryExpenses.UserId = createUser.Id;
+                _context.Categories.Add(categoryExpenses);
+                _context.SaveChanges();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -69,7 +93,7 @@ namespace Api.Controllers
                     {
                         new Claim("UserID", user.Id.ToString())
                     }),
-                    Expires = DateTime.UtcNow.AddDays(1),
+                    Expires = DateTime.UtcNow.AddHours(2),
                     SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appSettings.JWT_Secret)), SecurityAlgorithms.HmacSha256Signature)
                 };
 

@@ -267,12 +267,13 @@ namespace Api.Controllers
         [HttpGet]
         [Route("get-budgetStatistics")]
         //GET: /functions/get-bill
-        public Object GetBudgetStatistics()
+        public Object GetBudgetStatistics(DateTime dateFrom, DateTime dateTo)
         {
             String userId = GetUserId();
 
             var query2 = from bu in _context.Budgets
-                         where bu.UserId == userId
+                         where bu.UserId == userId && bu.FromDate > dateFrom && bu.FromDate < dateTo
+                         orderby bu.FromDate descending
                          select new
                          {
                              bu.Id,
