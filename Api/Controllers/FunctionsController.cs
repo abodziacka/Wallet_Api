@@ -197,7 +197,7 @@ namespace Api.Controllers
         //PUT: /functions/update-bill
         public void UpdateBill(Bill bill)
         {
-            Bill billFind = (Bill)_context.Bills.Find(bill.Id);
+            Bill billFind = (Bill)_context.Bills.AsNoTracking().Where(p => p.Id == bill.Id).FirstOrDefault();
             String userId = GetUserId();
             if (billFind.UserId == userId && bill.UserId == userId) {
                 List<Product> products = (List<Product>)_context.Products.AsNoTracking().Where(p => p.BillId == bill.Id).Select(p => p).ToList();
@@ -272,7 +272,7 @@ namespace Api.Controllers
             String userId = GetUserId();
 
             var query2 = from bu in _context.Budgets
-                         where bu.UserId == userId && bu.FromDate > dateFrom && bu.FromDate < dateTo
+                         where bu.UserId == userId && bu.FromDate >= dateFrom && bu.FromDate <= dateTo
                          orderby bu.FromDate descending
                          select new
                          {
