@@ -55,14 +55,12 @@ namespace Api.Controllers
                 categoryFood.Description = "Produkty spożywcze";
                 categoryFood.UserId = createUser.Id;
                 _context.Categories.Add(categoryFood);
-                //_context.SaveChanges();
 
                 Category categoryClothes = new Category();
                 categoryClothes.Name = "Odzież";
                 categoryClothes.Description = "Ubrania";
                 categoryClothes.UserId = createUser.Id;
                 _context.Categories.Add(categoryClothes);
-                //_context.SaveChanges();
 
                 Category categoryExpenses = new Category();
                 categoryExpenses.Name = "Wydatki";

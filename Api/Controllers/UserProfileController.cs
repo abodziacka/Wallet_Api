@@ -30,7 +30,7 @@ namespace Api.Controllers
             {
                 user.Email,
                 user.UserName
-            };
+            };  
         }
     }
 }

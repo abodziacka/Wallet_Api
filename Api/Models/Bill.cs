@@ -20,7 +20,5 @@ namespace Api.Models
         public List<Product> Products { get; set; }
 
         
-
-
     }
 }

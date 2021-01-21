@@ -35,21 +35,6 @@ namespace Api.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
 
-        //[HttpGet]
-        //[Route("get-bill")]
-        ////GET: /functions/get-bill
-        //public Bill Details(int? id)
-        //{
-        //    //var query = from billQ in _context.Bills join productQ in _context.Products on billQ.Id equals productQ.BillId where billQ.Id == id select billQ;
-        //    Bill bill = (Bill)_context.Bills.Find(id);
-        //    List<Product> products = (List<Product>)_context.Products.Where(p => p.BillId == bill.Id).Select(p=>p).ToList();
-        //    //if (bill == null)
-        //    //{
-        //    //    return BadRequest(new { message = "Username or password incorect." });
-        //    //}
-        //    return bill;
-        //}
-
         [HttpGet]
         [Route("get-bill")]
         //GET: /functions/get-bill
@@ -98,10 +83,11 @@ namespace Api.Controllers
             return userId;
         }
 
+
         [HttpPost]
         [Route("add-bill")]
         //POST: /functions/add-bill
-        public void AddbBill(Bill bill)
+        public void AddBill(Bill bill)
         {
             String userId = GetUserId();
             _context.Bills.Add(new Bill()
@@ -114,7 +100,6 @@ namespace Api.Controllers
                 Products=bill.Products
 
             });
-            //_context.Bills.Add(bill);
             _context.SaveChanges();
         }
 
@@ -188,6 +173,21 @@ namespace Api.Controllers
             if (budget.UserId == userId)
             {
                 _context.Budgets.Remove(budget);
+                _context.SaveChanges();
+            }
+        }
+
+        [HttpDelete]
+        [Route("delete-product-by-id")]
+        public void DeleteProductById(int productId)
+        {
+            Product product = (Product)_context.Products.AsNoTracking().Where(p => p.Id == productId).FirstOrDefault(); ;
+            String userId = GetUserId();
+            Bill billFind = (Bill)_context.Bills.AsNoTracking().Where(p => p.Id == product.BillId).FirstOrDefault();
+           
+            if (billFind.UserId == userId)
+            {
+                _context.Products.Remove(product);
                 _context.SaveChanges();
             }
         }
@@ -266,7 +266,7 @@ namespace Api.Controllers
 
         [HttpGet]
         [Route("get-budgetStatistics")]
-        //GET: /functions/get-bill
+        //GET: /functions/get-budgetStatistics
         public Object GetBudgetStatistics(DateTime dateFrom, DateTime dateTo)
         {
             String userId = GetUserId();
@@ -284,7 +284,7 @@ namespace Api.Controllers
                              (from p in _context.Products
                               join b in _context.Bills on p.BillId equals b.Id
                               where
-       b.Date >= bu.FromDate && b.Date <= bu.ToDate && b.UserId == userId
+                              b.Date >= bu.FromDate && b.Date <= bu.ToDate && b.UserId == userId
                               select new
                               {
                                   TotalPrice = p.Price * p.Amount
@@ -293,7 +293,7 @@ namespace Api.Controllers
                              (from p in _context.Products
                               join b in _context.Bills on p.BillId equals b.Id
                               where
-      b.Date >= bu.FromDate && b.Date <= bu.ToDate && b.UserId == userId
+                              b.Date >= bu.FromDate && b.Date <= bu.ToDate && b.UserId == userId
                               select new
                               {
                                   TotalPrice = p.Price * p.Amount
